@@ -1,12 +1,15 @@
 <template>
   <el-table :data="tableData" style="width: 100%">
-    <el-table-column prop="opeId" label="ID" width="180"></el-table-column>
-    <el-table-column prop="userId" label="用户ID" width="180"></el-table-column>
-    <el-table-column prop="userName" label="用户名"></el-table-column>
-    <el-table-column prop="time" label="操作时间"></el-table-column>
+    <el-table-column prop="opeid" label="ID" width="180"></el-table-column>
+    <el-table-column prop="userid"       :filters="idList"
+      :filter-method="filterHandler" label="用户ID" width="180"></el-table-column>
+    <el-table-column prop="username" label="用户名"></el-table-column>
+        <el-table-column label="操作时间">
+      <template slot-scope="scope">{{scope.row.time | timeFilter}}</template>
+    </el-table-column>
     <el-table-column label="操作类型">
       <template slot-scope="scope">
-        <el-tag size="medium">{{ scope.row.type | Convert }}</el-tag>
+        <el-tag :type="scope.row.type === 1 ? 'danger' : 'success'" size="medium">{{ scope.row.type | Convert }}</el-tag>
       </template>
     </el-table-column>
     <el-table-column prop="money" label="操作金额"></el-table-column>
@@ -17,18 +20,10 @@
 <script>
 export default {
   name: "loan",
+  props:["tableData"],
   data() {
     return {
-      tableData: [
-        {
-          opeId: "2016-05-02",
-          userId: "123",
-          userName: "mimi",
-          time: "20190102",
-          type: 1,
-          money: 100
-        }
-      ]
+idList:[]
     };
   },
   filters: {
@@ -38,9 +33,51 @@ export default {
       } else {
         return "还款";
       }
+    },
+        timeFilter: function(value) {
+      var str = value;
+      str = str.split('.')[0];
+      str = str.replace(/T/," ")
+      // alert(str);
+      return str;
     }
   },
-  methods: {}
+  methods: {
+     initIdList() {
+      // console.log(this.tableData);
+      this.tableData.forEach(
+        function(item) {
+          var obj = {
+            text: item.userid,
+            value: item.userid
+          };
+          this.idList.push(obj);
+          // console.log(this.idList)
+        }.bind(this)
+      );
+      console.log(this.idList);
+
+      let newArr = [];
+      let obj = {};
+      for (var i = 0; i < this.idList.length; i++) {
+        if (!obj[this.idList[i].text]) {
+          newArr.push(this.idList[i]);
+          obj[this.idList[i].text] = true;
+        }
+      }
+
+      this.idList = newArr;
+    },
+    filterHandler(value, row, column) {
+      const property = column["property"];
+      return row[property] === value;
+    }
+  },
+    mounted() {
+    setTimeout(() => {
+      this.initIdList();
+    }, 2000);
+  }
 };
 </script>
 
